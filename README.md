@@ -9,6 +9,6 @@
 
 
 ### TODO
-1. Export a real ALS model into pytorch
-2. Save model as ONNX
-3. Load an ONNX model in a Scala runtime
+1. ~~Export a real ALS model into pytorch~~
+2. ~~Save model as ONNX~~
+3. ~~Load an ONNX model in a Scala runtime~~
