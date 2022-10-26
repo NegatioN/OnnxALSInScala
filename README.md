@@ -12,3 +12,4 @@
 1. ~~Export a real ALS model into pytorch~~
 2. ~~Save model as ONNX~~
 3. ~~Load an ONNX model in a Scala runtime~~
+4. How would a prod format of a model look like?

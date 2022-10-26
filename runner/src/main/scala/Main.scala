@@ -27,6 +27,8 @@ object Main extends App {
   def onnxargs(argNames: mutable.Set[String], values: Seq[Long])= {
     argNames.zip(values).map(x => x._1 -> OnnxTensor.createTensor(env, scala.Array(x._2))).toMap.asJava
   }
+
+  // Current inputNodeNames are just (index of item), (number of items to output)
   val inputNodeNames = session.getInputNames.asScala
   val inp = onnxargs(inputNodeNames, Seq(5L, 10L)) // Seq[Any] fail... for some reason.
 
