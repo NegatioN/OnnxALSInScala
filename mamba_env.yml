@@ -1,0 +1,16 @@
+name: onnx
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - onnx==1.12
+  - onnxruntime
+  - cudatoolkit=11.3
+  - pytorch=1.11
+  - torchvision
+  - numpy=1.23
+  - ipykernel
+  - ipywidgets
+  - jupyterlab

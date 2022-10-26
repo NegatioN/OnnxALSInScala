@@ -1,2 +1,9 @@
 *.class
 *.log
+data/
+.ipynb_checkpoints/
+.idea/
+out/
+project/
+target/
+.bsp/
