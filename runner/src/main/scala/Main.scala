@@ -3,7 +3,9 @@ package server
 import ai.onnxruntime.{OnnxTensor, OrtEnvironment}
 import ai.onnxruntime.OrtSession.SessionOptions
 
-import java.util.Collections
+import scala.collection.mutable
+import scala.jdk.CollectionConverters.{MapHasAsJava, SetHasAsScala}
+import scala.util.Random
 
 object Main extends App {
 
@@ -22,16 +24,18 @@ object Main extends App {
   val session = env.createSession("data/model.onnx", opts)
 
   // create inputs
-  val inputNodeName = session.getInputNames.iterator.next
-  val inp = OnnxTensor.createTensor(env, Array(5L));
-  val inpSingleton = Collections.singletonMap(inputNodeName, inp)
+  def onnxargs(argNames: mutable.Set[String], values: Seq[Long])= {
+    argNames.zip(values).map(x => x._1 -> OnnxTensor.createTensor(env, scala.Array(x._2))).toMap.asJava
+  }
+  val inputNodeNames = session.getInputNames.asScala
+  val inp = onnxargs(inputNodeNames, Seq(5L, 10L)) // Seq[Any] fail... for some reason.
 
   // Just test some timings
-  val n = 100
-  1 to n map{_ => time(session.run(inpSingleton))}
+  val n = 10
+  1 to n map{_ => time(session.run(onnxargs(inputNodeNames, Seq(Random.between(0, 100), Random.between(5, 10)))))}
 
   // do full inference and output
-  val out = session.run(inpSingleton)
+  val out = session.run(inp)
   val actualOutput: Array[Float] = out.get(0).getValue.asInstanceOf[Array[Float]]
   println(actualOutput.mkString(" "))
 }
