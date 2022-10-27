@@ -2,9 +2,7 @@ package server
 
 import ai.onnxruntime.{OnnxTensor, OrtEnvironment, OrtSession}
 import ai.onnxruntime.OrtSession.SessionOptions
-
 import scala.jdk.CollectionConverters._
-import scala.util.Random
 
 case class Model(path: String) {
   private val env = OrtEnvironment.getEnvironment
@@ -12,22 +10,41 @@ case class Model(path: String) {
   private val argNames = session.getInputNames.asScala.toSeq
   println(f"Model argnames: ${argNames.mkString(", ")}") // Currently contentId, size
 
-
-  def map_in(values: Seq[Long]) = {
-    argNames.zip(values).map(x => x._1 -> OnnxTensor.createTensor(env, scala.Array(x._2))).toMap.asJava
+  def map_in(values: Seq[Any]) = {
+    //TODO more types would need to be handled, and probably arrays as well further down the line.
+    val tensors = for (v <- values) yield {
+      v match {
+        case v: Long => OnnxTensor.createTensor(env, Array(v))
+        case v: String => OnnxTensor.createTensor(env, Array(v))
+        case _ => OnnxTensor.createTensor(env, Array())
+      }
+    }
+    argNames.zip(tensors).map(x => x._1 -> x._2).toMap.asJava
   }
 
-  //TODO these things need to kinda be interfaces or contracts somehow.
   def map_out(output: OrtSession.Result) = {
-    val scores = output.get(0).getValue.asInstanceOf[Array[Float]]
-    val indices = output.get(1).getValue.asInstanceOf[Array[Long]]
-    indices.zip(scores).map(x => x._1.toString -> x._2) // todo collapse option, only return relevant.
+    // this code does not handle non-existent outputs very nicely :)
+    val names = output.get("contentIdd").get().getValue.asInstanceOf[Array[String]]
+    val scores = output.get("scores").get().getValue.asInstanceOf[Array[Float]]
+    names.zip(scores).map(x => x._1 -> x._2)
   }
-  def predict_and_rank(values: Seq[Long]) = {
+  def predict_and_rank(values: Seq[Any]) = {
     map_out(session.run(map_in(values)))
   }
 }
 object Main extends App {
-  val m = Model("data/model.onnx")
-  println(m.predict_and_rank(Seq(5L, 20L)).mkString(" "))
+  def time[R](block: => R): R = {
+    val t0 = System.nanoTime()
+    val result = block
+    val t1 = System.nanoTime()
+    println("Elapsed time: " + (t1 - t0) + "ns")
+    result
+  }
+
+  val m = Model("model.onnx")
+  val input = Seq(10L, "5")
+  println(m.predict_and_rank(input).mkString(" "))
+
+  // Just test some timings
+  //1 to 10 map{_ => time(m.predict_and_rank(input))}
 }
