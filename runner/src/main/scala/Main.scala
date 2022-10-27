@@ -12,21 +12,19 @@ case class Model(path: String) {
 
   def map_in(values: Seq[Any]) = {
     //TODO more types would need to be handled, and probably arrays as well further down the line.
-    val tensors = for (v <- values) yield {
-      v match {
-        case v: Long => OnnxTensor.createTensor(env, Array(v))
-        case v: String => OnnxTensor.createTensor(env, Array(v))
-        case _ => OnnxTensor.createTensor(env, Array())
-      }
+    val tensors = values.map {
+      case v: Long => OnnxTensor.createTensor(env, Array(v))
+      case v: String => OnnxTensor.createTensor(env, Array(v))
+      case _ => OnnxTensor.createTensor(env, Array())
     }
-    argNames.zip(tensors).map(x => x._1 -> x._2).toMap.asJava
+    argNames.zip(tensors).toMap.asJava
   }
 
   def map_out(output: OrtSession.Result) = {
     // this code does not handle non-existent outputs very nicely :)
     val names = output.get("contentIdd").get().getValue.asInstanceOf[Array[String]]
     val scores = output.get("scores").get().getValue.asInstanceOf[Array[Double]]
-    names.zip(scores).map(x => x._1 -> x._2)
+    names.zip(scores)
   }
   def predict_and_rank(values: Seq[Any]) = {
     map_out(session.run(map_in(values)))
