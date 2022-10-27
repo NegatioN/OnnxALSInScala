@@ -25,7 +25,7 @@ case class Model(path: String) {
   def map_out(output: OrtSession.Result) = {
     // this code does not handle non-existent outputs very nicely :)
     val names = output.get("contentIdd").get().getValue.asInstanceOf[Array[String]]
-    val scores = output.get("scores").get().getValue.asInstanceOf[Array[Float]]
+    val scores = output.get("scores").get().getValue.asInstanceOf[Array[Double]]
     names.zip(scores).map(x => x._1 -> x._2)
   }
   def predict_and_rank(values: Seq[Any]) = {
@@ -42,7 +42,7 @@ object Main extends App {
   }
 
   val m = Model("model.onnx")
-  val input = Seq(10L, "5")
+  val input = Seq(10L, "lunsj")
   println(m.predict_and_rank(input).mkString(" "))
 
   // Just test some timings
